@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { computeStreaks, listEntryDates, todayKey } from "@/lib/local";
 
@@ -143,7 +144,15 @@ export default function TodayPage() {
             )}
           </div>
         ) : (
-          <div className="text-center text-sm opacity-80">Locked for today. Come back tomorrow.</div>
+          <div className="text-center text-sm opacity-80 flex flex-col items-center gap-2">
+            <div>Locked for today. Come back tomorrow.</div>
+            <Link
+              href={`/entry/${today}`}
+              className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15"
+            >
+              View today’s entry
+            </Link>
+          </div>
         )}
         <textarea
           className="w-full h-48 resize-y rounded-md border border-black/10 dark:border-white/15 bg-white/60 dark:bg-white/5 p-3 focus:outline-none focus:ring-2 focus:ring-black/20 dark:focus:ring-white/20"

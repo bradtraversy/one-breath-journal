@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getEntry, removeEntry } from "@/lib/local";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
-type Props = { params: { id: string } };
-
-export default function EntryDetailPage({ params }: Props) {
-  const date = params.id; // Expect YYYY-MM-DD
+export default function EntryDetailPage() {
+  const params = useParams();
+  const date = Array.isArray(params?.id) ? params.id[0] : (params?.id as string); // Expect YYYY-MM-DD
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState<string | null>(null);
