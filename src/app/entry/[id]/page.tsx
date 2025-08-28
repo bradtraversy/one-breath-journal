@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getEntry } from "@/lib/local";
+import { getEntry, removeEntry } from "@/lib/local";
+import { useRouter } from "next/navigation";
 
 type Props = { params: { id: string } };
 
 export default function EntryDetailPage({ params }: Props) {
   const date = params.id; // Expect YYYY-MM-DD
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState<string | null>(null);
   const [meta, setMeta] = useState<{ startedAt?: string; submittedAt?: string } | null>(null);
@@ -43,6 +45,18 @@ export default function EntryDetailPage({ params }: Props) {
                 Submitted at {new Date(meta.submittedAt).toLocaleString()} {meta?.startedAt ? `· Started ${new Date(meta.startedAt).toLocaleTimeString()}` : ""}
               </div>
             )}
+            <div className="pt-2">
+              <button
+                className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15 text-red-600 dark:text-red-400"
+                onClick={() => {
+                  if (!confirm("Delete this entry? This cannot be undone.")) return;
+                  removeEntry(date);
+                  router.push("/calendar");
+                }}
+              >
+                Delete entry
+              </button>
+            </div>
           </>
         )}
       </div>
