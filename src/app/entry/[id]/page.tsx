@@ -1,17 +1,51 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getEntry } from "@/lib/local";
+
 type Props = { params: { id: string } };
 
 export default function EntryDetailPage({ params }: Props) {
-  const { id } = params;
+  const date = params.id; // Expect YYYY-MM-DD
+  const [loading, setLoading] = useState(true);
+  const [text, setText] = useState<string | null>(null);
+  const [meta, setMeta] = useState<{ startedAt?: string; submittedAt?: string } | null>(null);
+
+  useEffect(() => {
+    const entry = getEntry(date);
+    if (entry) {
+      setText(entry.text);
+      setMeta({ startedAt: entry.startedAt, submittedAt: entry.submittedAt });
+    } else {
+      setText(null);
+    }
+    setLoading(false);
+  }, [date]);
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Entry</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Entry</h1>
+        <Link href="/calendar" className="text-sm underline">Back to Calendar</Link>
+      </div>
       <div className="rounded-xl border border-black/10 dark:border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur p-6 space-y-3">
-        <div className="text-sm opacity-70">Entry ID: {id}</div>
-        <article className="prose prose-slate dark:prose-invert max-w-none">
-          <p>Read-only view of an entry will appear here once persistence is added.</p>
-        </article>
+        <div className="text-sm opacity-70">Date: {date}</div>
+        {loading ? (
+          <div className="opacity-70 text-sm">Loading…</div>
+        ) : text === null ? (
+          <div className="opacity-70 text-sm">No entry found for this day.</div>
+        ) : (
+          <>
+            <article className="whitespace-pre-wrap leading-relaxed">{text}</article>
+            {meta?.submittedAt && (
+              <div className="text-xs opacity-60">
+                Submitted at {new Date(meta.submittedAt).toLocaleString()} {meta?.startedAt ? `· Started ${new Date(meta.startedAt).toLocaleTimeString()}` : ""}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
 }
-

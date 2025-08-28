@@ -1,19 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-type StoredEntry = {
-  text: string;
-  startedAt: string; // ISO
-  submittedAt: string; // ISO
-};
-
-function localDateKey(d = new Date()) {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
+import { computeStreaks, listEntryDates, todayKey } from "@/lib/local";
 
 export default function TodayPage() {
   const [started, setStarted] = useState(false);
@@ -24,7 +12,7 @@ export default function TodayPage() {
   const [submittedAt, setSubmittedAt] = useState<string | null>(null);
   const intervalRef = useRef<number | null>(null);
 
-  const today = localDateKey();
+  const today = todayKey();
   const draftKey = `draft:${today}`;
   const entryKey = `entry:${today}`;
 
@@ -117,11 +105,18 @@ export default function TodayPage() {
   const ss = String(secondsLeft % 60).padStart(2, "0");
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
 
+  // Streaks derived from localStorage entries
+  const [streaks, setStreaks] = useState<{ current: number; best: number }>({ current: 0, best: 0 });
+  useEffect(() => {
+    const dates = listEntryDates();
+    setStreaks(computeStreaks(dates, today));
+  }, [locked, submittedAt, today]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Today</h1>
-        <div className="text-sm opacity-75">Current streak: — | Best: —</div>
+        <div className="text-sm opacity-75">Current streak: {streaks.current || "—"} | Best: {streaks.best || "—"}</div>
       </div>
 
       <div className="rounded-xl border border-black/10 dark:border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur p-6 space-y-4">
