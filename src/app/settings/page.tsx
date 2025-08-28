@@ -1,25 +1,6 @@
-"use client";
-
-import { getEntry, listEntryDates } from "@/lib/local";
+import ExportButton from "@/components/ExportButton";
 
 export default function SettingsPage() {
-  const handleExport = () => {
-    const dates = listEntryDates();
-    const items = dates.map((date) => ({ date, ...getEntry(date)! }));
-    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), entries: items }, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const stamp = new Date().toISOString().replace(/[:T]/g, "-").split(".")[0];
-    a.href = url;
-    a.download = `one-breath-entries-${stamp}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
@@ -37,9 +18,7 @@ export default function SettingsPage() {
       <div className="rounded-xl border border-black/10 dark:border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur p-6 space-y-3">
         <h2 className="text-sm font-medium">Data</h2>
         <p className="text-sm opacity-70">Export your locally saved entries as JSON.</p>
-        <button onClick={handleExport} className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15 w-fit">
-          Export entries (JSON)
-        </button>
+        <ExportButton />
       </div>
 
       <p className="text-sm opacity-70">Account and privacy controls will be added here.</p>
