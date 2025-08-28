@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getEntry, removeEntry } from "@/lib/local";
 import { useParams, useRouter } from "next/navigation";
+
+function isValidDateId(id: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(id)) return false;
+  const [y, m, d] = id.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+}
 
 export default function EntryDetailPage() {
   const params = useParams();
@@ -12,8 +19,13 @@ export default function EntryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState<string | null>(null);
   const [meta, setMeta] = useState<{ startedAt?: string; submittedAt?: string } | null>(null);
+  const validDate = useMemo(() => (date ? isValidDateId(date) : false), [date]);
 
   useEffect(() => {
+    if (!validDate) {
+      setLoading(false);
+      return;
+    }
     const entry = getEntry(date);
     if (entry) {
       setText(entry.text);
@@ -22,7 +34,7 @@ export default function EntryDetailPage() {
       setText(null);
     }
     setLoading(false);
-  }, [date]);
+  }, [date, validDate]);
 
   return (
     <div className="space-y-6">
@@ -34,6 +46,8 @@ export default function EntryDetailPage() {
         <div className="text-sm opacity-70">Date: {date}</div>
         {loading ? (
           <div className="opacity-70 text-sm">Loading…</div>
+        ) : !validDate ? (
+          <div className="opacity-70 text-sm">Invalid date format. Use YYYY-MM-DD.</div>
         ) : text === null ? (
           <div className="opacity-70 text-sm">No entry found for this day.</div>
         ) : (
