@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# One‑Breath Journal
 
-## Getting Started
+Write once per day, for up to 60 seconds. This project is built in phases starting with a local‑first prototype, then layering auth and a database.
 
-First, run the development server:
+See the full product context and plan in `docs/one-breath-journal-context.md`.
+
+## Current Phase — Local‑First
+
+Implemented client‑only journaling using `localStorage` (no auth, no backend):
+- Today view with a 60s timer, local draft autosave, early submit, and auto‑submit on timeout.
+- Lock the entry for the day after submit/timeout; show timestamps.
+- Calendar with month navigation and dots on days that have entries; today highlighted.
+- Entry detail page (read‑only) with delete action.
+- Streaks (current/best) computed from local entries.
+- Export all local entries to JSON from Settings.
+
+## Tech
+- Next.js App Router (Server Components first, with small client islands)
+- Tailwind CSS v4
+- TypeScript
+
+## Run Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## App Structure (key files)
+- `src/app/layout.tsx` — App shell and nav (server)
+- `src/app/page.tsx` — Redirects `/` → `/today`
+- `src/app/today/page.tsx` — Today screen (server) rendering client island components
+- `src/app/calendar/page.tsx` — Calendar page (server)
+- `src/app/entry/[id]/page.tsx` — Entry detail by date (server), unwraps `params` with `use()`
+- `src/app/settings/page.tsx` — Settings (server)
+- `src/components/TimerEditor.tsx` — Client: timer, editor, submit/lock
+- `src/components/StreakBadge.tsx` — Client: streak computation and updates
+- `src/components/CalendarClient.tsx` — Client: month nav + grid with dots
+- `src/components/EntryClient.tsx` — Client: read‑only entry + delete
+- `src/components/ExportButton.tsx` — Client: JSON export
+- `src/lib/local.ts` — LocalStorage helpers and streak utility
+- `docs/one-breath-journal-context.md` — Product context and 1‑week plan
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local Data Model
+Entries are stored in `localStorage` as JSON with keys `entry:YYYY-MM-DD` containing:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```json
+{
+  "text": "your entry",
+  "startedAt": "2025-08-28T14:00:00.000Z",
+  "submittedAt": "2025-08-28T14:01:00.000Z"
+}
+```
 
-## Learn More
+Drafts are stored per‑day under `draft:YYYY-MM-DD` and cleared on submit.
 
-To learn more about Next.js, take a look at the following resources:
+## Roadmap
+Phase 1 (done)
+- Local‑first journaling, calendar, entry view, delete, export.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Phase 2
+- Auth (email link + Google). Minimal profile with timezone.
+- Postgres + Prisma; migrate local entries on first login.
+- Server APIs for entries, export, and delete; row‑level authorization.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Phase 3
+- Calendar streaks on server; DST/timezone hardening; rate limiting.
+- Settings: timezone selector, privacy copy, optional reminders.
+- PWA polish for install + offline (optional).
 
-## Deploy on Vercel
+Future Ideas
+- Client‑side encryption (zero‑knowledge mode).
+- Gentle reminders (email/push), tags/mood, insights.
+- Opt‑in AI reflections/summaries.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Accessibility & Privacy
+- Large accessible countdown; keyboard‑friendly editor.
+- Color contrast and visible focus states.
+- Private by default; no third‑party analytics in the local phase.
