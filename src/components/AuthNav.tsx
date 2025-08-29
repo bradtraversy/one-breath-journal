@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import SignOutButton from "@/components/SignOutButton";
 import Icon from "@/components/Icon";
 
 export default function AuthNav() {
   const [email, setEmail] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     let mounted = true;
@@ -34,10 +36,15 @@ export default function AuthNav() {
         } else setEmail(null);
       });
     };
+    // Listen to immediate auth state changes (sign in/out) for instant UI updates
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setEmail(session?.user?.email ?? null);
+    });
     window.addEventListener("focus", onFocus);
     return () => {
       mounted = false;
       window.removeEventListener("focus", onFocus);
+      sub.subscription.unsubscribe();
     };
   }, []);
 

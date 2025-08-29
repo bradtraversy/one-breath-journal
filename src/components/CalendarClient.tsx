@@ -25,6 +25,8 @@ export default function CalendarClient() {
   const { firstDay, daysInMonth } = useMemo(() => monthInfo(year, month), [year, month]);
   const [authed, setAuthed] = useState(false);
   const [serverDates, setServerDates] = useState<Set<string> | null>(null);
+  type ApiEntry = { id?: string; date: string; text: string; startedAt: string; submittedAt: string };
+  type ApiListResponse = { entries: ApiEntry[] };
 
   const cells = useMemo(() => {
     const result: { dateStr: string; inMonth: boolean; day: number }[] = [];
@@ -62,8 +64,8 @@ export default function CalendarClient() {
           setServerDates(null);
         } else if (res.ok) {
           setAuthed(true);
-          const payload = await res.json();
-          setServerDates(new Set<string>(payload.entries.map((e: any) => e.date)));
+          const payload = (await res.json()) as ApiListResponse;
+          setServerDates(new Set<string>(payload.entries.map((e) => e.date)));
         }
       }
     })();
@@ -78,7 +80,7 @@ export default function CalendarClient() {
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("storage", onStorage);
     };
-  }, [year, month, firstDay, daysInMonth]);
+  }, [year, month, firstDay, daysInMonth, cells]);
 
   const monthLabel = new Date(year, month, 1).toLocaleString(undefined, { month: "long", year: "numeric" });
 

@@ -1,101 +1,10 @@
-"use client";
-
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useRouter, useSearchParams } from "next/navigation";
-import Icon from "@/components/Icon";
+import { Suspense } from "react";
+import LoginClient from "@/components/LoginClient";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const search = useSearchParams();
-  const supabase = createSupabaseBrowserClient();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const nextUrl = search?.get("next") || "/today";
-
-  // If already signed in, go to Today immediately
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) router.replace("/today");
-    });
-  }, []);
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      router.push(nextUrl);
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`
-        : undefined;
-    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
-  };
-
   return (
-    <div className="max-w-sm mx-auto space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-      {search?.get("next") && (
-        <div className="text-xs opacity-70">Please sign in to continue.</div>
-      )}
-      <form onSubmit={onSubmit} className="space-y-3">
-        <input
-          type="email"
-          required
-          placeholder="Email"
-          className="w-full rounded-md border border-black/10 dark:border-white/15 bg-white/60 dark:bg-white/5 p-2"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-        />
-        <input
-          type="password"
-          required
-          placeholder="Password"
-          className="w-full rounded-md border border-black/10 dark:border-white/15 bg-white/60 dark:bg-white/5 p-2"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="current-password"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 rounded-md bg-black text-white w-full dark:bg-white dark:text-black inline-flex items-center justify-center gap-2"
-          disabled={loading}
-        >
-          <Icon name="log-in" className="w-4 h-4" />
-          <span>{loading ? "Signing in…" : "Sign in"}</span>
-        </button>
-        {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
-      </form>
-
-      <div className="flex items-center gap-3 my-2">
-        <div className="h-px bg-black/10 dark:bg-white/15 flex-1" />
-        <span className="text-xs opacity-60">or</span>
-        <div className="h-px bg-black/10 dark:bg-white/15 flex-1" />
-      </div>
-      <button
-        onClick={signInWithGoogle}
-        className="px-4 py-2 rounded-md border border-black/10 dark:border-white/15 w-full inline-flex items-center justify-center gap-2"
-      >
-        <img src="/google.svg" alt="" width="18" height="18" />
-        <span>Continue with Google</span>
-      </button>
-
-      <div className="text-sm opacity-80">
-        No account? <Link className="underline" href="/signup">Sign up</Link>
-      </div>
-    </div>
+    <Suspense fallback={<div className="text-sm opacity-70">Loading…</div>}>
+      <LoginClient />
+    </Suspense>
   );
 }

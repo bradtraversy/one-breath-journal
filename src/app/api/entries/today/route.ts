@@ -14,7 +14,15 @@ function toDateInTz(date: Date, timeZone: string): string {
   return `${y}-${m}-${d}`;
 }
 
-function mapEntryRow(row: any) {
+type DBEntryRow = {
+  id: string;
+  entry_date: string;
+  text: string;
+  started_at: string;
+  submitted_at: string;
+};
+
+function mapEntryRow(row: DBEntryRow) {
   return {
     id: row.id,
     date: row.entry_date,
@@ -43,4 +51,3 @@ export async function GET() {
   if (!data) return NextResponse.json({ exists: false });
   return NextResponse.json({ exists: true, entry: mapEntryRow(data) });
 }
-

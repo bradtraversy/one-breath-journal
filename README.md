@@ -4,6 +4,8 @@ Write once per day, for up to 60 seconds. Low friction, privacy‑first, and a g
 
 See the full product context and plan in `docs/one-breath-journal-context.md`.
 
+Development workflow: before committing or pushing, you must run `npm run build` and fix any errors. See `CONTRIBUTING.md`.
+
 ## Current State
 - Auth: Supabase email/password + Google OAuth. Today, Calendar, and Settings are auth‑gated; guests see a public landing page.
 - Entries: When signed in, entries are saved to Supabase (RLS per user); when signed out, entries are stored locally.

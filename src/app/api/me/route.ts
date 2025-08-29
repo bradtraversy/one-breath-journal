@@ -30,20 +30,20 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let payload: any;
+  let payload: unknown;
   try {
     payload = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { timezone } = payload ?? {};
+  const timezone = (payload as { timezone?: unknown })?.timezone;
   if (timezone && typeof timezone !== "string") {
     return NextResponse.json({ error: "timezone must be a string" }, { status: 422 });
   }
 
-  const updates: Record<string, any> = {};
-  if (timezone) updates.timezone = timezone;
+  const updates: { timezone?: string } = {};
+  if (typeof timezone === "string") updates.timezone = timezone;
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "No fields to update" }, { status: 422 });
   }

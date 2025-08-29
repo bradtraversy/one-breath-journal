@@ -14,7 +14,15 @@ function toDateInTz(date: Date, timeZone: string): string {
   return `${y}-${m}-${d}`;
 }
 
-function mapEntryRow(row: any) {
+type DBEntryRow = {
+  id: string;
+  entry_date: string;
+  text: string;
+  started_at: string;
+  submitted_at: string;
+};
+
+function mapEntryRow(row: DBEntryRow) {
   return {
     id: row.id,
     date: row.entry_date,
@@ -49,14 +57,14 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: any = null;
+  let body: unknown = null;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const text: string = body?.text ?? "";
-  const startedAt: string | undefined = body?.startedAt;
+  const text: string = (body as { text?: string })?.text ?? "";
+  const startedAt: string | undefined = (body as { startedAt?: string })?.startedAt;
   if (typeof text !== "string") return NextResponse.json({ error: "text must be a string" }, { status: 422 });
 
   // Fetch timezone from profile
@@ -83,4 +91,3 @@ export async function POST(req: Request) {
   }
   return NextResponse.json({ entry: mapEntryRow(data) }, { status: 201 });
 }
-

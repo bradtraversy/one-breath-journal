@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-function mapRow(row: any) {
+type DBEntryRow = {
+  entry_date: string;
+  text: string;
+  started_at: string;
+  submitted_at: string;
+};
+
+function mapRow(row: DBEntryRow) {
   return {
     date: row.entry_date as string,
     text: row.text as string,
@@ -39,4 +46,3 @@ export async function POST() {
     },
   });
 }
-

@@ -6,6 +6,8 @@ import { computeStreaks, listEntryDates, todayKey } from "@/lib/local";
 export default function StreakBadge() {
   const [streaks, setStreaks] = useState<{ current: number; best: number }>({ current: 0, best: 0 });
   const today = todayKey();
+  type ApiEntry = { date: string; text: string; startedAt: string; submittedAt: string; id?: string };
+  type ApiListResponse = { entries: ApiEntry[] };
 
   useEffect(() => {
     const updateLocal = () => {
@@ -17,8 +19,8 @@ export default function StreakBadge() {
       if (!mounted) return;
       const res = await fetch(`/api/entries`, { cache: "no-store" });
       if (res.ok) {
-        const payload = await res.json();
-        const dates: string[] = payload.entries.map((e: any) => e.date);
+        const payload = (await res.json()) as ApiListResponse;
+        const dates: string[] = payload.entries.map((e) => e.date);
         setStreaks(computeStreaks(dates, today));
         return;
       }

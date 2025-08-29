@@ -26,8 +26,9 @@ export default function TimezoneSettings() {
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setProfile(data.profile as Profile);
-    } catch (e: any) {
-      setError(e?.message || "Failed to load profile");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message || "Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -49,8 +50,9 @@ export default function TimezoneSettings() {
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setProfile(data.profile as Profile);
-    } catch (e: any) {
-      setError(e?.message || "Failed to save");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message || "Failed to save");
     } finally {
       setSaving(false);
     }
@@ -90,4 +92,3 @@ export default function TimezoneSettings() {
     </div>
   );
 }
-

@@ -1,8 +1,9 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { listEntryDates, todayKey } from "@/lib/local";
+import { todayKey } from "@/lib/local";
 import Icon from "./Icon";
 
 type StoredEntry = {
