@@ -1,19 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Icon from "@/components/Icon";
 
 export default function SignupPage() {
   const router = useRouter();
+  const search = useSearchParams();
   const supabase = createSupabaseBrowserClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const nextUrl = search?.get("next") || "/today";
+
+  // If already signed in, go to Today immediately
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) router.replace("/today");
+    });
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +41,7 @@ export default function SignupPage() {
       if (data?.user?.confirmation_sent_at) {
         setInfo("Check your email to confirm your account.");
       } else {
-        router.push("/today");
+        router.push(nextUrl);
       }
     }
   };
@@ -40,6 +49,9 @@ export default function SignupPage() {
   return (
     <div className="max-w-sm mx-auto space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Sign up</h1>
+      {search?.get("next") && (
+        <div className="text-xs opacity-70">Create an account to continue.</div>
+      )}
       <form onSubmit={onSubmit} className="space-y-3">
         <input
           type="email"

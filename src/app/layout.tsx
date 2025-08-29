@@ -36,13 +36,13 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
         <header className="border-b border-black/10 dark:border-white/15">
           <div className="mx-auto max-w-3xl px-4 h-14 flex items-center justify-between">
-            <Link href="/today" className="font-semibold">One‑Breath Journal</Link>
+            <Link href="/" className="font-semibold">One‑Breath Journal</Link>
             <nav className="flex items-center gap-6 text-sm">
-              <Link href="/today">Today</Link>
-              <Link href="/calendar">Calendar</Link>
-              <Link href="/settings">Settings</Link>
               {user ? (
                 <>
+                  <Link href="/today">Today</Link>
+                  <Link href="/calendar">Calendar</Link>
+                  <Link href="/settings">Settings</Link>
                   <span className="opacity-70 hidden sm:inline">{user.email}</span>
                   <SignOutButton />
                 </>

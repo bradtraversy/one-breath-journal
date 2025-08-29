@@ -1,7 +1,15 @@
 import StreakBadge from "@/components/StreakBadge";
 import TimerEditor from "@/components/TimerEditor";
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export default function TodayPage() {
+export default async function TodayPage() {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/today");
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
