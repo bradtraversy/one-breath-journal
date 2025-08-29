@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import SignOutButton from "@/components/SignOutButton";
-import Icon from "@/components/Icon";
+import AuthNav from "@/components/AuthNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,44 +19,18 @@ export const metadata: Metadata = {
   description: "Write once per day in 60 seconds.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
         <header className="border-b border-black/10 dark:border-white/15">
           <div className="mx-auto max-w-3xl px-4 h-14 flex items-center justify-between">
             <Link href="/" className="font-semibold">One‑Breath Journal</Link>
-            <nav className="flex items-center gap-6 text-sm">
-              {user ? (
-                <>
-                  <Link href="/today">Today</Link>
-                  <Link href="/calendar">Calendar</Link>
-                  <Link href="/settings">Settings</Link>
-                  <span className="opacity-70 hidden sm:inline">{user.email}</span>
-                  <SignOutButton />
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="inline-flex items-center gap-1">
-                    <Icon name="log-in" className="w-4 h-4" />
-                    <span>Sign in</span>
-                  </Link>
-                  <Link href="/signup" className="inline-flex items-center gap-1">
-                    <Icon name="user-plus" className="w-4 h-4" />
-                    <span>Sign up</span>
-                  </Link>
-                </>
-              )}
-            </nav>
+            <AuthNav />
           </div>
         </header>
         <main className="mx-auto max-w-3xl px-4 py-8">{children}</main>

@@ -50,6 +50,7 @@ export default function LoginPage() {
           className="w-full rounded-md border border-black/10 dark:border-white/15 bg-white/60 dark:bg-white/5 p-2"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
         />
         <input
           type="password"
@@ -58,6 +59,7 @@ export default function LoginPage() {
           className="w-full rounded-md border border-black/10 dark:border-white/15 bg-white/60 dark:bg-white/5 p-2"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
         />
         <button
           type="submit"

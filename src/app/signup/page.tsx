@@ -38,10 +38,11 @@ export default function SignupPage() {
     if (error) {
       setError(error.message);
     } else {
-      if (data?.user?.confirmation_sent_at) {
-        setInfo("Check your email to confirm your account.");
-      } else {
+      // If email confirmations are enabled, Supabase returns no session.
+      if (data?.session) {
         router.push(nextUrl);
+      } else {
+        setInfo("Account created. Check your email to confirm, then sign in.");
       }
     }
   };
@@ -60,6 +61,7 @@ export default function SignupPage() {
           className="w-full rounded-md border border-black/10 dark:border-white/15 bg-white/60 dark:bg-white/5 p-2"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
         />
         <input
           type="password"
@@ -68,6 +70,7 @@ export default function SignupPage() {
           className="w-full rounded-md border border-black/10 dark:border-white/15 bg-white/60 dark:bg-white/5 p-2"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
         />
         <button
           type="submit"
