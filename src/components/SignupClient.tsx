@@ -54,10 +54,8 @@ export default function SignupClient() {
   };
 
   const signInWithGoogle = async () => {
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`
-        : undefined;
+    const base = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? window.location.origin : undefined);
+    const redirectTo = base ? `${base}/auth/callback?next=${encodeURIComponent(nextUrl)}` : undefined;
     await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
   };
 

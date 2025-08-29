@@ -7,8 +7,8 @@ function isValidDateId(id: string): boolean {
   return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
 }
 
-export default async function EntryDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: raw } = await params;
+export default function EntryDetailPage({ params }: { params: { id: string } }) {
+  const raw = params.id;
   const id = Array.isArray(raw) ? raw[0] : (raw as string);
   if (!isValidDateId(id)) {
     return (
