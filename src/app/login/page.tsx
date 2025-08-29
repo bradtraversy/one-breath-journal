@@ -36,6 +36,14 @@ export default function LoginPage() {
     }
   };
 
+  const signInWithGoogle = async () => {
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`
+        : undefined;
+    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
+  };
+
   return (
     <div className="max-w-sm mx-auto space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
@@ -71,6 +79,19 @@ export default function LoginPage() {
         </button>
         {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
       </form>
+
+      <div className="flex items-center gap-3 my-2">
+        <div className="h-px bg-black/10 dark:bg-white/15 flex-1" />
+        <span className="text-xs opacity-60">or</span>
+        <div className="h-px bg-black/10 dark:bg-white/15 flex-1" />
+      </div>
+      <button
+        onClick={signInWithGoogle}
+        className="px-4 py-2 rounded-md border border-black/10 dark:border-white/15 w-full inline-flex items-center justify-center gap-2"
+      >
+        <img src="/google.svg" alt="" width="18" height="18" />
+        <span>Continue with Google</span>
+      </button>
 
       <div className="text-sm opacity-80">
         No account? <Link className="underline" href="/signup">Sign up</Link>

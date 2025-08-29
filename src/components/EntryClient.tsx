@@ -5,11 +5,9 @@ import { useEffect, useState } from "react";
 import { getEntry, removeEntry } from "@/lib/local";
 import { useRouter } from "next/navigation";
 import Icon from "./Icon";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function EntryClient({ date }: { date: string }) {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState<string | null>(null);
   const [meta, setMeta] = useState<{ startedAt?: string; submittedAt?: string } | null>(null);
@@ -17,20 +15,11 @@ export default function EntryClient({ date }: { date: string }) {
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(async ({ data }) => {
+    (async () => {
       if (!mounted) return;
-      const isAuthed = !!data.session;
-      setAuthed(isAuthed);
-      if (isAuthed) {
-        const res = await fetch(`/api/entries/${date}`);
-        if (res.ok) {
-          const payload = await res.json();
-          setText(payload.entry.text);
-          setMeta({ startedAt: payload.entry.startedAt, submittedAt: payload.entry.submittedAt });
-        } else {
-          setText(null);
-        }
-      } else {
+      const res = await fetch(`/api/entries/${date}`);
+      if (res.status === 401) {
+        setAuthed(false);
         const entry = getEntry(date);
         if (entry) {
           setText(entry.text);
@@ -38,9 +27,16 @@ export default function EntryClient({ date }: { date: string }) {
         } else {
           setText(null);
         }
+      } else if (res.ok) {
+        setAuthed(true);
+        const payload = await res.json();
+        setText(payload.entry.text);
+        setMeta({ startedAt: payload.entry.startedAt, submittedAt: payload.entry.submittedAt });
+      } else {
+        setText(null);
       }
       setLoading(false);
-    });
+    })();
     return () => {
       mounted = false;
     };

@@ -2,28 +2,42 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import SignOutButton from "@/components/SignOutButton";
 import Icon from "@/components/Icon";
 
 export default function AuthNav() {
-  const supabase = createSupabaseBrowserClient();
   const [email, setEmail] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (!mounted) return;
-      setEmail(data.user?.email ?? null);
-      setReady(true);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setEmail(session?.user?.email ?? null);
-    });
+    // Determine auth via server using cookie session
+    fetch("/api/me", { cache: "no-store" })
+      .then(async (res) => {
+        if (!mounted) return;
+        if (res.ok) {
+          const { profile } = await res.json();
+          setEmail(profile?.email ?? null);
+        } else {
+          setEmail(null);
+        }
+      })
+      .finally(() => {
+        if (mounted) setReady(true);
+      });
+    const onFocus = () => {
+      fetch("/api/me", { cache: "no-store" }).then(async (res) => {
+        if (!mounted) return;
+        if (res.ok) {
+          const { profile } = await res.json();
+          setEmail(profile?.email ?? null);
+        } else setEmail(null);
+      });
+    };
+    window.addEventListener("focus", onFocus);
     return () => {
       mounted = false;
-      sub.subscription.unsubscribe();
+      window.removeEventListener("focus", onFocus);
     };
   }, []);
 
@@ -54,4 +68,3 @@ export default function AuthNav() {
     </div>
   );
 }
-

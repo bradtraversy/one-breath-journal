@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { computeStreaks, listEntryDates, todayKey } from "@/lib/local";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function StreakBadge() {
   const [streaks, setStreaks] = useState<{ current: number; best: number }>({ current: 0, best: 0 });
   const today = todayKey();
-  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     const updateLocal = () => {
@@ -15,19 +13,17 @@ export default function StreakBadge() {
       setStreaks(computeStreaks(dates, today));
     };
     let mounted = true;
-    supabase.auth.getSession().then(async ({ data }) => {
+    (async () => {
       if (!mounted) return;
-      if (data.session) {
-        const res = await fetch(`/api/entries`, { cache: "no-store" });
-        if (res.ok) {
-          const payload = await res.json();
-          const dates: string[] = payload.entries.map((e: any) => e.date);
-          setStreaks(computeStreaks(dates, today));
-          return;
-        }
+      const res = await fetch(`/api/entries`, { cache: "no-store" });
+      if (res.ok) {
+        const payload = await res.json();
+        const dates: string[] = payload.entries.map((e: any) => e.date);
+        setStreaks(computeStreaks(dates, today));
+        return;
       }
       updateLocal();
-    });
+    })();
     const onStorage = (e: StorageEvent) => {
       if (!e.key || e.key.startsWith("entry:") || e.key === "__ping__") updateLocal();
     };

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { listEntryDates, todayKey } from "@/lib/local";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
 
 type StoredEntry = {
@@ -13,7 +12,6 @@ type StoredEntry = {
 };
 
 export default function TimerEditor() {
-  const supabase = createSupabaseBrowserClient();
   const [started, setStarted] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(60);
   const [text, setText] = useState("");
@@ -30,21 +28,20 @@ export default function TimerEditor() {
   // Detect auth and load today's entry: server if authed, else local
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(async ({ data }) => {
+    (async () => {
       if (!mounted) return;
-      const isAuthed = !!data.session;
-      setAuthed(isAuthed);
-      if (isAuthed) {
-        const res = await fetch("/api/entries/today", { cache: "no-store" });
-        if (res.ok) {
-          const payload = await res.json();
-          if (payload.exists && payload.entry) {
-            setText(payload.entry.text);
-            setStartedAt(payload.entry.startedAt);
-            setSubmittedAt(payload.entry.submittedAt);
-            setLocked(true);
-            return;
-          }
+      const res = await fetch("/api/entries/today", { cache: "no-store" });
+      if (res.status === 401) {
+        setAuthed(false);
+      } else if (res.ok) {
+        setAuthed(true);
+        const payload = await res.json();
+        if (payload.exists && payload.entry) {
+          setText(payload.entry.text);
+          setStartedAt(payload.entry.startedAt);
+          setSubmittedAt(payload.entry.submittedAt);
+          setLocked(true);
+          return;
         }
       }
       // Fallback to local draft/entry when not authed or none exists on server
@@ -61,7 +58,7 @@ export default function TimerEditor() {
         const draft = window.localStorage.getItem(draftKey);
         if (draft) setText(draft);
       } catch {}
-    });
+    })();
     return () => {
       mounted = false;
     };

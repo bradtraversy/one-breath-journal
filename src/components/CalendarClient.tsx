@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { hasEntry, todayKey } from "@/lib/local";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function monthInfo(year: number, month: number) {
   const first = new Date(year, month, 1);
@@ -19,7 +18,6 @@ function fmt(y: number, m: number, d: number) {
 }
 
 export default function CalendarClient() {
-  const supabase = createSupabaseBrowserClient();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -52,25 +50,23 @@ export default function CalendarClient() {
   const [, setTick] = useState(0);
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(async ({ data }) => {
+    (async () => {
       if (!mounted) return;
-      const isAuthed = !!data.session;
-      setAuthed(isAuthed);
-      if (isAuthed) {
-        // Fetch range for this month grid (includes leading/trailing days)
-        const firstCell = cells[0]?.dateStr;
-        const lastCell = cells[cells.length - 1]?.dateStr;
-        if (firstCell && lastCell) {
-          const res = await fetch(`/api/entries?from=${firstCell}&to=${lastCell}`, { cache: "no-store" });
-          if (res.ok) {
-            const payload = await res.json();
-            setServerDates(new Set<string>(payload.entries.map((e: any) => e.date)));
-          }
+      // Fetch range for this month grid (includes leading/trailing days)
+      const firstCell = cells[0]?.dateStr;
+      const lastCell = cells[cells.length - 1]?.dateStr;
+      if (firstCell && lastCell) {
+        const res = await fetch(`/api/entries?from=${firstCell}&to=${lastCell}`, { cache: "no-store" });
+        if (res.status === 401) {
+          setAuthed(false);
+          setServerDates(null);
+        } else if (res.ok) {
+          setAuthed(true);
+          const payload = await res.json();
+          setServerDates(new Set<string>(payload.entries.map((e: any) => e.date)));
         }
-      } else {
-        setServerDates(null);
       }
-    });
+    })();
     const onFocus = () => setTick((n) => n + 1);
     const onStorage = (e: StorageEvent) => {
       if (!e.key || e.key.startsWith("entry:") || e.key === "__ping__") setTick((n) => n + 1);

@@ -1,15 +1,38 @@
 "use client";
 
 import { getEntry, listEntryDates } from "@/lib/local";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
 
 export default function ExportButton() {
-  const handleExport = () => {
+  const supabase = createSupabaseBrowserClient();
+
+  const handleExport = async () => {
+    // If authenticated, use server export; otherwise export local entries.
+    const { data } = await supabase.auth.getSession();
+    const hasSession = !!data.session;
+    if (hasSession) {
+      const res = await fetch("/api/export", { method: "POST" });
+      if (!res.ok) return; // could add a toast later
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      // filename comes from Content-Disposition, but we also provide a fallback
+      const stamp = new Date().toISOString().replace(/[:T]/g, "-").split(".")[0];
+      a.href = url;
+      a.download = `one-breath-entries-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      return;
+    }
+
     const dates = listEntryDates();
     const items = dates.map((date) => ({ date, ...getEntry(date)! }));
-    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), entries: items }, null, 2)], {
-      type: "application/json",
-    });
+    const blob = new Blob([
+      JSON.stringify({ exportedAt: new Date().toISOString(), entries: items }, null, 2),
+    ], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     const stamp = new Date().toISOString().replace(/[:T]/g, "-").split(".")[0];

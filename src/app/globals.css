@@ -24,3 +24,43 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Subtle, consistent hovers and focus-visible for interactive elements */
+@layer base {
+  /* Links: fade slightly on hover */
+  a {
+    @apply transition-colors duration-150;
+  }
+  a:hover {
+    @apply opacity-80;
+  }
+
+  /* Buttons: enable smooth color transitions */
+  button {
+    @apply transition-colors duration-150;
+  }
+
+  /* Outline-style actions (bordered) get a soft hover background */
+  button[class*="border"],
+  a[class*="border"] {
+    @apply hover:bg-black/5 dark:hover:bg-white/10;
+  }
+
+  /* Solid buttons: nudge bg subtly on hover */
+  button[class*="bg-black"],
+  a[class*="bg-black"] {
+    @apply hover:bg-black/85;
+  }
+  .dark button[class*="bg-white"],
+  .dark a[class*="bg-white"] {
+    @apply hover:bg-white/85;
+  }
+
+  /* Focus-visible ring for interactive elements that look like buttons */
+  button[class*="border"],
+  button[class*="bg-"],
+  a[class*="border"],
+  a[class*="bg-"] {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-black/20 dark:focus-visible:ring-white/20;
+  }
+}

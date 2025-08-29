@@ -12,6 +12,7 @@ export default function SignupPage() {
   const supabase = createSupabaseBrowserClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -29,6 +30,11 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     setInfo(null);
+    if (password !== confirmPassword) {
+      setLoading(false);
+      setError("Passwords do not match");
+      return;
+    }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -45,6 +51,14 @@ export default function SignupPage() {
         setInfo("Account created. Check your email to confirm, then sign in.");
       }
     }
+  };
+
+  const signInWithGoogle = async () => {
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`
+        : undefined;
+    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
   };
 
   return (
@@ -72,6 +86,15 @@ export default function SignupPage() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
         />
+        <input
+          type="password"
+          required
+          placeholder="Confirm password"
+          className="w-full rounded-md border border-black/10 dark:border-white/15 bg-white/60 dark:bg-white/5 p-2"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          autoComplete="new-password"
+        />
         <button
           type="submit"
           className="px-4 py-2 rounded-md bg-black text-white w-full dark:bg-white dark:text-black inline-flex items-center justify-center gap-2"
@@ -83,6 +106,19 @@ export default function SignupPage() {
         {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
         {info && <div className="text-sm opacity-80">{info}</div>}
       </form>
+
+      <div className="flex items-center gap-3 my-2">
+        <div className="h-px bg-black/10 dark:bg-white/15 flex-1" />
+        <span className="text-xs opacity-60">or</span>
+        <div className="h-px bg-black/10 dark:bg-white/15 flex-1" />
+      </div>
+      <button
+        onClick={signInWithGoogle}
+        className="px-4 py-2 rounded-md border border-black/10 dark:border-white/15 w-full inline-flex items-center justify-center gap-2"
+      >
+        <img src="/google.svg" alt="" width="18" height="18" />
+        <span>Continue with Google</span>
+      </button>
 
       <div className="text-sm opacity-80">
         Have an account? <Link className="underline" href="/login">Sign in</Link>
