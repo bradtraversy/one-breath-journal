@@ -1,6 +1,9 @@
 // Client-only localStorage helpers for entries keyed by local date
 // Key format: entry:YYYY-MM-DD
 
+export const ENTRY_PREFIX = "entry:";
+export const DRAFT_PREFIX = "draft:";
+
 export type LocalEntry = {
   text: string;
   startedAt: string; // ISO
@@ -19,7 +22,11 @@ function storageAvailable() {
 }
 
 export function entryKey(date: string) {
-  return `entry:${date}`;
+  return `${ENTRY_PREFIX}${date}`;
+}
+
+export function draftKey(date: string) {
+  return `${DRAFT_PREFIX}${date}`;
 }
 
 export function getEntry(date: string): LocalEntry | null {
@@ -48,8 +55,8 @@ export function listEntryDates(): string[] {
   const dates: string[] = [];
   for (let i = 0; i < window.localStorage.length; i++) {
     const k = window.localStorage.key(i);
-    if (k && k.startsWith("entry:")) {
-      dates.push(k.slice(6));
+    if (k && k.startsWith(ENTRY_PREFIX)) {
+      dates.push(k.slice(ENTRY_PREFIX.length));
     }
   }
   return dates.sort();
@@ -107,4 +114,3 @@ export function computeStreaks(dates: string[], today = todayKey()): { current: 
 
   return { current, best };
 }
-

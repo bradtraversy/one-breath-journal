@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { todayKey } from "@/lib/local";
+import { todayKey, draftKey as makeDraftKey, entryKey as makeEntryKey } from "@/lib/local";
 import Icon from "./Icon";
 
 type StoredEntry = {
@@ -23,8 +23,8 @@ export default function TimerEditor() {
   const [authed, setAuthed] = useState(false);
 
   const today = todayKey();
-  const draftKey = `draft:${today}`;
-  const entryKey = `entry:${today}`;
+  const todayDraftKey = makeDraftKey(today);
+  const todayEntryKey = makeEntryKey(today);
 
   // Detect auth and load today's entry: server if authed, else local
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function TimerEditor() {
       }
       // Fallback to local draft/entry when not authed or none exists on server
       try {
-        const stored = window.localStorage.getItem(entryKey);
+        const stored = window.localStorage.getItem(todayEntryKey);
         if (stored) {
           const entry: StoredEntry = JSON.parse(stored);
           setText(entry.text);
@@ -56,7 +56,7 @@ export default function TimerEditor() {
           setLocked(true);
           return;
         }
-        const draft = window.localStorage.getItem(draftKey);
+        const draft = window.localStorage.getItem(todayDraftKey);
         if (draft) setText(draft);
       } catch {}
     })();
@@ -69,9 +69,9 @@ export default function TimerEditor() {
   useEffect(() => {
     if (locked) return;
     try {
-      window.localStorage.setItem(draftKey, text);
+      window.localStorage.setItem(todayDraftKey, text);
     } catch {}
-  }, [text, locked, draftKey]);
+  }, [text, locked, todayDraftKey]);
 
   // Timer
   useEffect(() => {
@@ -107,7 +107,7 @@ export default function TimerEditor() {
     if (locked) return;
     setText("");
     try {
-      window.localStorage.removeItem(draftKey);
+      window.localStorage.removeItem(todayDraftKey);
     } catch {}
   };
 
@@ -133,15 +133,15 @@ export default function TimerEditor() {
         entry.submittedAt = payload.entry.submittedAt;
       }
       try {
-        window.localStorage.removeItem(draftKey);
+        window.localStorage.removeItem(todayDraftKey);
       } catch {}
       setSubmittedAt(entry.submittedAt);
       setLocked(true);
       setStarted(false);
     } else {
       try {
-        window.localStorage.setItem(entryKey, JSON.stringify(entry));
-        window.localStorage.removeItem(draftKey);
+        window.localStorage.setItem(todayEntryKey, JSON.stringify(entry));
+        window.localStorage.removeItem(todayDraftKey);
       } catch {}
       setSubmittedAt(submitted);
       setLocked(true);
