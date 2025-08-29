@@ -5,13 +5,12 @@ Write once per day, for up to 60 seconds. Low friction, privacy‑first, and a g
 See the full product context and plan in `docs/one-breath-journal-context.md`.
 
 ## Current State
-- Auth: Supabase email/password. Today, Calendar, and Settings are gated — guests see a public landing page and must sign in to create entries.
+- Auth: Supabase email/password + Google OAuth. Today, Calendar, and Settings are auth‑gated; guests see a public landing page.
+- Entries: When signed in, entries are saved to Supabase (RLS per user); when signed out, entries are stored locally.
 - Today: 60s timer, local draft autosave, early submit, auto‑submit on timeout; entry locks for the day.
-- Calendar: Month grid with entry dots; click to view entries (read‑only) and delete.
-- Streaks: Current/best, computed on the client from local entries.
+- Calendar: Month grid with entry dots; click to view entries and delete.
+- Streaks: Current/best derived from your data (server when authed; local when guest).
 - Export: Download all local entries as JSON from Settings.
-
-Note: Entries are still stored in `localStorage` in this phase. Server APIs and data migration come next.
 
 ## Tech
 - Next.js App Router (Server Components with small client islands)
@@ -22,7 +21,7 @@ Note: Entries are still stored in `localStorage` in this phase. Server APIs and 
 ## Setup
 1) Supabase
 - Create a Supabase project and run `docs/supabase-setup.sql` in the SQL editor (creates `profiles` and `entries` with RLS).
-- Enable Email/Password under Auth → Providers. Optional: enable Google.
+- Enable Email/Password under Auth → Providers. Optional: enable Google and configure the provider.
 - Settings → API: copy Project URL and Public API key (anon).
 
 2) Env vars
@@ -49,6 +48,9 @@ npm run dev
 - `src/app/entry/[id]/page.tsx` — Entry detail (read‑only)
 - `src/app/settings/page.tsx` — Settings (auth‑gated) with timezone control
 - `src/app/api/me/route.ts` — Profile read/update (timezone)
+- `src/app/api/entries/route.ts` — List entries (GET) and create today’s entry (POST)
+- `src/app/api/entries/[date]/route.ts` — Get or delete entry by date
+- `src/app/api/entries/today/route.ts` — Get today’s entry by profile timezone
 - `src/components/TimerEditor.tsx` — Timer, editor, submit/lock
 - `src/components/StreakBadge.tsx` — Streak computation and updates
 - `src/components/CalendarClient.tsx` — Month grid with dots
@@ -57,12 +59,14 @@ npm run dev
 - `src/components/Landing.tsx` — Public landing page
 - `src/components/TimezoneSettings.tsx` — Client timezone control using `/api/me`
 - `src/components/Icon.tsx` — Inline SVG icon set
+- `src/components/AuthNav.tsx` — Client session‑aware nav (shows Sign out when logged in)
 - `src/lib/local.ts` — LocalStorage helpers and streak utility
 - `src/lib/supabase/server.ts` / `src/lib/supabase/client.ts` — Supabase helpers
 - `docs/one-breath-journal-context.md` — Product context and plan
+ - `public/google.svg` — Google brand icon for OAuth buttons
 
-## Local Data Model (current)
-Entries are stored in `localStorage` as JSON with keys `entry:YYYY-MM-DD` containing:
+## Local Data Model (guest mode)
+Entries (when not signed in) are stored in `localStorage` as JSON with keys `entry:YYYY-MM-DD` containing:
 
 ```json
 {
@@ -75,11 +79,10 @@ Entries are stored in `localStorage` as JSON with keys `entry:YYYY-MM-DD` contai
 Drafts are stored per‑day under `draft:YYYY-MM-DD` and cleared on submit.
 
 ## Roadmap
-- Next: Entries CRUD API on Supabase (RLS enforced), server‑computed day boundary by timezone, and export endpoint.
-- Migration: Import existing local entries to your account on first login from Settings.
-- Later: DST hardening, rate limiting, optional reminders and PWA polish.
+- Next: Import existing local entries to your account from Settings; basic toasts for errors (e.g., duplicate entry).
+- Later: DST hardening, rate limiting, export from server, optional reminders and PWA polish.
 
 ## Accessibility & Privacy
 - Large accessible countdown; keyboard‑friendly editor.
-- Color contrast and visible focus states.
+- Color contrast and visible focus states; subtle hover and focus‑visible styles across buttons/links.
 - Private by default; no third‑party analytics.
