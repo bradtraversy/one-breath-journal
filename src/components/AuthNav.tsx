@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import SignOutButton from "@/components/SignOutButton";
 import Icon from "@/components/Icon";
@@ -9,7 +9,7 @@ import Icon from "@/components/Icon";
 export default function AuthNav() {
   const [email, setEmail] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   useEffect(() => {
     let mounted = true;
@@ -46,7 +46,7 @@ export default function AuthNav() {
       window.removeEventListener("focus", onFocus);
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase.auth]);
 
   if (!ready) return null;
 
