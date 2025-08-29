@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthNav from "@/components/AuthNav";
+import Icon from "@/components/Icon";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +31,19 @@ export default function RootLayout({
         <header className="border-b border-black/10 dark:border-white/15">
           <div className="mx-auto max-w-3xl px-4 h-14 flex items-center justify-between">
             <Link href="/" className="font-semibold">One‑Breath Journal</Link>
-            <AuthNav />
+            <div className="flex items-center gap-4">
+              <AuthNav />
+              <a
+                href="https://github.com/bradtraversy/one-breath-journal"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open GitHub repository"
+                className="opacity-80 hover:opacity-100 transition"
+                title="GitHub"
+              >
+                <Icon name="github" className="w-5 h-5" />
+              </a>
+            </div>
           </div>
         </header>
         <main className="mx-auto max-w-3xl px-4 py-8">{children}</main>

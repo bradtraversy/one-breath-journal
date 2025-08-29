@@ -11,7 +11,8 @@ type IconName =
   | "file"
   | "log-out"
   | "log-in"
-  | "user-plus";
+  | "user-plus"
+  | "github";
 
 export default function Icon({ name, className }: { name: IconName; className?: string }) {
   switch (name) {
@@ -96,6 +97,12 @@ export default function Icon({ name, className }: { name: IconName; className?: 
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <line x1="19" y1="8" x2="19" y2="14" />
           <line x1="16" y1="11" x2="22" y2="11" />
+        </svg>
+      );
+    case "github":
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+          <path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2.01c-3.22.7-3.9-1.41-3.9-1.41-.53-1.35-1.3-1.71-1.3-1.71-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.72 1.26 3.38.96.11-.76.41-1.26.74-1.55-2.57-.29-5.27-1.29-5.27-5.76 0-1.27.46-2.31 1.21-3.13-.12-.3-.52-1.5.11-3.12 0 0 .98-.31 3.2 1.19a11.1 11.1 0 0 1 5.82 0c2.22-1.5 3.2-1.19 3.2-1.19.63 1.62.23 2.82.11 3.12.75.82 1.21 1.86 1.21 3.13 0 4.49-2.71 5.46-5.29 5.75.42.36.79 1.06.79 2.14v3.16c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/>
         </svg>
       );
     default:
