@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import SignOutButton from "@/components/SignOutButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,11 +20,16 @@ export const metadata: Metadata = {
   description: "Write once per day in 60 seconds.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
@@ -33,6 +40,17 @@ export default function RootLayout({
               <Link href="/today">Today</Link>
               <Link href="/calendar">Calendar</Link>
               <Link href="/settings">Settings</Link>
+              {user ? (
+                <>
+                  <span className="opacity-70 hidden sm:inline">{user.email}</span>
+                  <SignOutButton />
+                </>
+              ) : (
+                <>
+                  <Link href="/login">Sign in</Link>
+                  <Link href="/signup">Sign up</Link>
+                </>
+              )}
             </nav>
           </div>
         </header>
