@@ -1,26 +1,11 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toDateInTz } from "@/lib/dates";
+import { mapEntryRow, type DBEntryRow } from "@/lib/api";
 
 // toDateInTz moved to src/lib/dates
 
-type DBEntryRow = {
-  id: string;
-  entry_date: string;
-  text: string;
-  started_at: string;
-  submitted_at: string;
-};
-
-function mapEntryRow(row: DBEntryRow) {
-  return {
-    id: row.id,
-    date: row.entry_date,
-    text: row.text,
-    startedAt: row.started_at,
-    submittedAt: row.submitted_at,
-  };
-}
+// mapEntryRow and DBEntryRow are shared in src/lib/api
 
 export async function GET() {
   const supabase = await createSupabaseServerClient();
@@ -39,5 +24,5 @@ export async function GET() {
     .eq("entry_date", today)
     .maybeSingle();
   if (!data) return NextResponse.json({ exists: false });
-  return NextResponse.json({ exists: true, entry: mapEntryRow(data) });
+  return NextResponse.json({ exists: true, entry: mapEntryRow(data as DBEntryRow) });
 }

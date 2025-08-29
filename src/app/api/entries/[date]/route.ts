@@ -1,23 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { mapEntryRow, type DBEntryRow } from "@/lib/api";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-type DBEntryRow = {
-  id: string;
-  entry_date: string;
-  text: string;
-  started_at: string;
-  submitted_at: string;
-};
-
-function mapEntryRow(row: DBEntryRow) {
-  return {
-    id: row.id,
-    date: row.entry_date,
-    text: row.text,
-    startedAt: row.started_at,
-    submittedAt: row.submitted_at,
-  };
-}
+// mapEntryRow and DBEntryRow are shared in src/lib/api
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ date: string }> }) {
   const { date } = await params;
@@ -33,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ dat
     .eq("entry_date", date)
     .single();
   if (error) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ entry: mapEntryRow(data) });
+  return NextResponse.json({ entry: mapEntryRow(data as DBEntryRow) });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ date: string }> }) {
