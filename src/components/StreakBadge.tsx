@@ -2,26 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { computeStreaks, listEntryDates, todayKey } from "@/lib/local";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function StreakBadge() {
   const [streaks, setStreaks] = useState<{ current: number; best: number }>({ current: 0, best: 0 });
   const today = todayKey();
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
-    const update = () => {
+    const updateLocal = () => {
       const dates = listEntryDates();
       setStreaks(computeStreaks(dates, today));
     };
-    update();
+    let mounted = true;
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      if (data.session) {
+        const res = await fetch(`/api/entries`, { cache: "no-store" });
+        if (res.ok) {
+          const payload = await res.json();
+          const dates: string[] = payload.entries.map((e: any) => e.date);
+          setStreaks(computeStreaks(dates, today));
+          return;
+        }
+      }
+      updateLocal();
+    });
     const onStorage = (e: StorageEvent) => {
-      if (!e.key || e.key.startsWith("entry:") || e.key === "__ping__") update();
+      if (!e.key || e.key.startsWith("entry:") || e.key === "__ping__") updateLocal();
     };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    return () => {
+      mounted = false;
+      window.removeEventListener("storage", onStorage);
+    };
   }, [today]);
 
   return (
     <div className="text-sm opacity-75">Current streak: {streaks.current || "—"} | Best: {streaks.best || "—"}</div>
   );
 }
-

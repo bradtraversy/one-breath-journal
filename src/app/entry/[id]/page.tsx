@@ -1,4 +1,3 @@
-import { use } from "react";
 import EntryClient from "@/components/EntryClient";
 
 function isValidDateId(id: string): boolean {
@@ -8,15 +7,15 @@ function isValidDateId(id: string): boolean {
   return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
 }
 
-export default function EntryDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const date = Array.isArray(id) ? id[0] : (id as string);
-  if (!isValidDateId(date)) {
+export default async function EntryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: raw } = await params;
+  const id = Array.isArray(raw) ? raw[0] : (raw as string);
+  if (!isValidDateId(id)) {
     return (
       <div className="rounded-xl border border-black/10 dark:border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur p-6">
         <div className="text-sm opacity-70">Invalid date format. Use YYYY-MM-DD.</div>
       </div>
     );
   }
-  return <EntryClient date={date} />;
+  return <EntryClient date={id} />;
 }

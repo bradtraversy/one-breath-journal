@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { hasEntry, todayKey } from "@/lib/local";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function monthInfo(year: number, month: number) {
   const first = new Date(year, month, 1);
@@ -18,11 +19,14 @@ function fmt(y: number, m: number, d: number) {
 }
 
 export default function CalendarClient() {
+  const supabase = createSupabaseBrowserClient();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const today = todayKey();
   const { firstDay, daysInMonth } = useMemo(() => monthInfo(year, month), [year, month]);
+  const [authed, setAuthed] = useState(false);
+  const [serverDates, setServerDates] = useState<Set<string> | null>(null);
 
   const cells = useMemo(() => {
     const result: { dateStr: string; inMonth: boolean; day: number }[] = [];
@@ -47,6 +51,26 @@ export default function CalendarClient() {
 
   const [, setTick] = useState(0);
   useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      const isAuthed = !!data.session;
+      setAuthed(isAuthed);
+      if (isAuthed) {
+        // Fetch range for this month grid (includes leading/trailing days)
+        const firstCell = cells[0]?.dateStr;
+        const lastCell = cells[cells.length - 1]?.dateStr;
+        if (firstCell && lastCell) {
+          const res = await fetch(`/api/entries?from=${firstCell}&to=${lastCell}`, { cache: "no-store" });
+          if (res.ok) {
+            const payload = await res.json();
+            setServerDates(new Set<string>(payload.entries.map((e: any) => e.date)));
+          }
+        }
+      } else {
+        setServerDates(null);
+      }
+    });
     const onFocus = () => setTick((n) => n + 1);
     const onStorage = (e: StorageEvent) => {
       if (!e.key || e.key.startsWith("entry:") || e.key === "__ping__") setTick((n) => n + 1);
@@ -54,10 +78,11 @@ export default function CalendarClient() {
     window.addEventListener("focus", onFocus);
     window.addEventListener("storage", onStorage);
     return () => {
+      mounted = false;
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("storage", onStorage);
     };
-  }, []);
+  }, [year, month, firstDay, daysInMonth]);
 
   const monthLabel = new Date(year, month, 1).toLocaleString(undefined, { month: "long", year: "numeric" });
 
@@ -105,7 +130,7 @@ export default function CalendarClient() {
         <div className="grid grid-cols-7 gap-2 text-center text-sm">
           {cells.map(({ dateStr, inMonth, day }) => {
             const isToday = dateStr === today;
-            const exists = hasEntry(dateStr);
+            const exists = authed ? serverDates?.has(dateStr) ?? false : hasEntry(dateStr);
             const base = "aspect-square rounded-md border flex items-center justify-center relative";
             const border = "border-black/10 dark:border-white/15";
             const muted = inMonth ? "" : "opacity-40";
@@ -128,4 +153,3 @@ export default function CalendarClient() {
     </>
   );
 }
-

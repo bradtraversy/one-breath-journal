@@ -5,22 +5,45 @@ import { useEffect, useState } from "react";
 import { getEntry, removeEntry } from "@/lib/local";
 import { useRouter } from "next/navigation";
 import Icon from "./Icon";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function EntryClient({ date }: { date: string }) {
   const router = useRouter();
+  const supabase = createSupabaseBrowserClient();
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState<string | null>(null);
   const [meta, setMeta] = useState<{ startedAt?: string; submittedAt?: string } | null>(null);
+  const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    const entry = getEntry(date);
-    if (entry) {
-      setText(entry.text);
-      setMeta({ startedAt: entry.startedAt, submittedAt: entry.submittedAt });
-    } else {
-      setText(null);
-    }
-    setLoading(false);
+    let mounted = true;
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      const isAuthed = !!data.session;
+      setAuthed(isAuthed);
+      if (isAuthed) {
+        const res = await fetch(`/api/entries/${date}`);
+        if (res.ok) {
+          const payload = await res.json();
+          setText(payload.entry.text);
+          setMeta({ startedAt: payload.entry.startedAt, submittedAt: payload.entry.submittedAt });
+        } else {
+          setText(null);
+        }
+      } else {
+        const entry = getEntry(date);
+        if (entry) {
+          setText(entry.text);
+          setMeta({ startedAt: entry.startedAt, submittedAt: entry.submittedAt });
+        } else {
+          setText(null);
+        }
+      }
+      setLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
   }, [date]);
 
   return (
@@ -51,8 +74,12 @@ export default function EntryClient({ date }: { date: string }) {
                 className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15 text-red-600 dark:text-red-400 inline-flex items-center gap-2"
                 onClick={() => {
                   if (!confirm("Delete this entry? This cannot be undone.")) return;
-                  removeEntry(date);
-                  router.push("/calendar");
+                  if (authed) {
+                    fetch(`/api/entries/${date}`, { method: "DELETE" }).then(() => router.push("/calendar"));
+                  } else {
+                    removeEntry(date);
+                    router.push("/calendar");
+                  }
                 }}
               >
                 <Icon name="trash" className="w-4 h-4" />

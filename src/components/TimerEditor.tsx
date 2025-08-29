@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { listEntryDates, todayKey } from "@/lib/local";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
 
 type StoredEntry = {
@@ -12,6 +13,7 @@ type StoredEntry = {
 };
 
 export default function TimerEditor() {
+  const supabase = createSupabaseBrowserClient();
   const [started, setStarted] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(60);
   const [text, setText] = useState("");
@@ -19,28 +21,50 @@ export default function TimerEditor() {
   const [startedAt, setStartedAt] = useState<string | null>(null);
   const [submittedAt, setSubmittedAt] = useState<string | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const [authed, setAuthed] = useState(false);
 
   const today = todayKey();
   const draftKey = `draft:${today}`;
   const entryKey = `entry:${today}`;
 
-  // Load draft/entry on mount
+  // Detect auth and load today's entry: server if authed, else local
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(entryKey);
-      if (stored) {
-        const entry: StoredEntry = JSON.parse(stored);
-        setText(entry.text);
-        setStartedAt(entry.startedAt);
-        setSubmittedAt(entry.submittedAt);
-        setLocked(true);
-        return;
+    let mounted = true;
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      const isAuthed = !!data.session;
+      setAuthed(isAuthed);
+      if (isAuthed) {
+        const res = await fetch("/api/entries/today", { cache: "no-store" });
+        if (res.ok) {
+          const payload = await res.json();
+          if (payload.exists && payload.entry) {
+            setText(payload.entry.text);
+            setStartedAt(payload.entry.startedAt);
+            setSubmittedAt(payload.entry.submittedAt);
+            setLocked(true);
+            return;
+          }
+        }
       }
-      const draft = window.localStorage.getItem(draftKey);
-      if (draft) setText(draft);
-    } catch {
-      // ignore storage errors
-    }
+      // Fallback to local draft/entry when not authed or none exists on server
+      try {
+        const stored = window.localStorage.getItem(entryKey);
+        if (stored) {
+          const entry: StoredEntry = JSON.parse(stored);
+          setText(entry.text);
+          setStartedAt(entry.startedAt);
+          setSubmittedAt(entry.submittedAt);
+          setLocked(true);
+          return;
+        }
+        const draft = window.localStorage.getItem(draftKey);
+        if (draft) setText(draft);
+      } catch {}
+    });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Save draft as user types (when not locked)
@@ -89,7 +113,7 @@ export default function TimerEditor() {
     } catch {}
   };
 
-  const doSubmit = () => {
+  const doSubmit = async () => {
     if (locked) return;
     const submitted = new Date().toISOString();
     const entry: StoredEntry = {
@@ -97,13 +121,34 @@ export default function TimerEditor() {
       startedAt: startedAt ?? new Date().toISOString(),
       submittedAt: submitted,
     };
-    try {
-      window.localStorage.setItem(entryKey, JSON.stringify(entry));
-      window.localStorage.removeItem(draftKey);
-    } catch {}
-    setSubmittedAt(submitted);
-    setLocked(true);
-    setStarted(false);
+    if (authed) {
+      const res = await fetch("/api/entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, startedAt: entry.startedAt }),
+      });
+      if (!res.ok) {
+        // If already exists or error, just lock locally to avoid user churn
+        // Could show a toast in the future
+      } else {
+        const payload = await res.json();
+        entry.submittedAt = payload.entry.submittedAt;
+      }
+      try {
+        window.localStorage.removeItem(draftKey);
+      } catch {}
+      setSubmittedAt(entry.submittedAt);
+      setLocked(true);
+      setStarted(false);
+    } else {
+      try {
+        window.localStorage.setItem(entryKey, JSON.stringify(entry));
+        window.localStorage.removeItem(draftKey);
+      } catch {}
+      setSubmittedAt(submitted);
+      setLocked(true);
+      setStarted(false);
+    }
     // light ping so others tabs can update if needed
     try {
       window.localStorage.setItem("__ping__", String(Date.now()));
