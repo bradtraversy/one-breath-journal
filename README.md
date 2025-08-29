@@ -4,9 +4,12 @@ Write once per day, for up to 60 seconds. Low friction, privacy‑first, and a g
 
 See the full product context and plan in `docs/one-breath-journal-context.md`.
 
-Development workflow: before committing or pushing, you must run `npm run build` and fix any errors. See `CONTRIBUTING.md`.
+Demo: https://onebreathjournal.com
+
+This is an open source project. To make a contribution, aee `CONTRIBUTING.md`.
 
 ## Current State
+
 - Auth: Supabase email/password + Google OAuth. Today, Calendar, and Settings are auth‑gated; guests see a public landing page.
 - Entries: When signed in, entries are saved to Supabase (RLS per user); when signed out, entries are stored locally.
 - Today: 60s timer, local draft autosave, early submit, auto‑submit on timeout; entry locks for the day.
@@ -15,25 +18,31 @@ Development workflow: before committing or pushing, you must run `npm run build`
 - Export: Download all local entries as JSON from Settings.
 
 ## Tech
+
 - Next.js App Router (Server Components with small client islands)
 - Tailwind CSS v4
 - TypeScript
 - Supabase Auth (via `@supabase/supabase-js` and `@supabase/ssr`)
 
 ## Setup
-1) Supabase
+
+1. Supabase
+
 - Create a Supabase project and run `docs/supabase-setup.sql` in the SQL editor (creates `profiles` and `entries` with RLS).
 - Enable Email/Password under Auth → Providers. Optional: enable Google and configure the provider.
 - Settings → API: copy Project URL and Public API key (anon).
 
-2) Env vars
+2. Env vars
+
 - Create `.env.local` in the project root:
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=<your-supabase-project-url>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-public-anon-key>
 ```
 
-3) Install & run
+3. Install & run
+
 ```bash
 npm install
 npm run dev
@@ -41,6 +50,7 @@ npm run dev
 ```
 
 ## App Structure (key files)
+
 - `src/app/layout.tsx` — App shell, nav with auth state
 - `src/app/page.tsx` — Landing for guests; authed users redirected to `/today`
 - `src/app/login/page.tsx` — Sign in (email/password)
@@ -65,9 +75,10 @@ npm run dev
 - `src/lib/local.ts` — LocalStorage helpers and streak utility
 - `src/lib/supabase/server.ts` / `src/lib/supabase/client.ts` — Supabase helpers
 - `docs/one-breath-journal-context.md` — Product context and plan
- - `public/google.svg` — Google brand icon for OAuth buttons
+- `public/google.svg` — Google brand icon for OAuth buttons
 
 ## Local Data Model (guest mode)
+
 Entries (when not signed in) are stored in `localStorage` as JSON with keys `entry:YYYY-MM-DD` containing:
 
 ```json
@@ -81,10 +92,12 @@ Entries (when not signed in) are stored in `localStorage` as JSON with keys `ent
 Drafts are stored per‑day under `draft:YYYY-MM-DD` and cleared on submit.
 
 ## Roadmap
+
 - Next: Import existing local entries to your account from Settings; basic toasts for errors (e.g., duplicate entry).
 - Later: DST hardening, rate limiting, export from server, optional reminders and PWA polish.
 
 ## Accessibility & Privacy
+
 - Large accessible countdown; keyboard‑friendly editor.
 - Color contrast and visible focus states; subtle hover and focus‑visible styles across buttons/links.
 - Private by default; no third‑party analytics.
