@@ -8,8 +8,7 @@ function isValidDateId(id: string): boolean {
 }
 
 export default function EntryDetailPage({ params }: { params: { id: string } }) {
-  const raw = params.id;
-  const id = Array.isArray(raw) ? raw[0] : (raw as string);
+  const id = params.id;
   if (!isValidDateId(id)) {
     return (
       <div className="rounded-xl border border-black/10 dark:border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur p-6">
