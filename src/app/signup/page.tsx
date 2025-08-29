@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Icon from "@/components/Icon";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -58,10 +59,11 @@ export default function SignupPage() {
         />
         <button
           type="submit"
-          className="px-4 py-2 rounded-md bg-black text-white w-full dark:bg-white dark:text-black"
+          className="px-4 py-2 rounded-md bg-black text-white w-full dark:bg-white dark:text-black inline-flex items-center justify-center gap-2"
           disabled={loading}
         >
-          {loading ? "Creating…" : "Create account"}
+          <Icon name="user-plus" className="w-4 h-4" />
+          <span>{loading ? "Creating…" : "Create account"}</span>
         </button>
         {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
         {info && <div className="text-sm opacity-80">{info}</div>}
@@ -73,4 +75,3 @@ export default function SignupPage() {
     </div>
   );
 }
-

@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import SignOutButton from "@/components/SignOutButton";
+import Icon from "@/components/Icon";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,8 +48,14 @@ export default async function RootLayout({
                 </>
               ) : (
                 <>
-                  <Link href="/login">Sign in</Link>
-                  <Link href="/signup">Sign up</Link>
+                  <Link href="/login" className="inline-flex items-center gap-1">
+                    <Icon name="log-in" className="w-4 h-4" />
+                    <span>Sign in</span>
+                  </Link>
+                  <Link href="/signup" className="inline-flex items-center gap-1">
+                    <Icon name="user-plus" className="w-4 h-4" />
+                    <span>Sign up</span>
+                  </Link>
                 </>
               )}
             </nav>

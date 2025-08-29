@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { listEntryDates, todayKey } from "@/lib/local";
+import Icon from "./Icon";
 
 type StoredEntry = {
   text: string;
@@ -123,18 +124,20 @@ export default function TimerEditor() {
         <div className="flex gap-2 justify-center">
           {!started && (
             <button
-              className="px-4 py-2 rounded-md bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+              className="px-4 py-2 rounded-md bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 inline-flex items-center gap-2"
               onClick={start}
             >
-              Start 60s
+              <Icon name="play" className="w-4 h-4" />
+              <span>Start 60s</span>
             </button>
           )}
           {started && (
             <button
-              className="px-4 py-2 rounded-md border border-black/10 dark:border-white/15"
+              className="px-4 py-2 rounded-md border border-black/10 dark:border-white/15 inline-flex items-center gap-2"
               onClick={reset}
             >
-              Reset
+              <Icon name="rotate" className="w-4 h-4" />
+              <span>Reset</span>
             </button>
           )}
         </div>
@@ -143,9 +146,10 @@ export default function TimerEditor() {
           <div>Locked for today. Come back tomorrow.</div>
           <Link
             href={`/entry/${today}`}
-            className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15"
+            className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15 inline-flex items-center gap-2"
           >
-            View today’s entry
+            <Icon name="file" className="w-4 h-4" />
+            <span>View today’s entry</span>
           </Link>
         </div>
       )}
@@ -161,19 +165,21 @@ export default function TimerEditor() {
         <div className="flex gap-2">
           {!locked && (
             <button
-              className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15"
+              className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15 inline-flex items-center gap-2"
               onClick={clearDraft}
             >
-              Clear
+              <Icon name="x" className="w-4 h-4" />
+              <span>Clear</span>
             </button>
           )}
           {!locked && (
             <button
-              className="px-3 py-1.5 rounded-md bg-black text-white dark:bg-white dark:text-black"
+              className="px-3 py-1.5 rounded-md bg-black text-white dark:bg-white dark:text-black inline-flex items-center gap-2"
               onClick={doSubmit}
               disabled={!started}
             >
-              Submit
+              <Icon name="check" className="w-4 h-4" />
+              <span>Submit</span>
             </button>
           )}
         </div>
@@ -186,4 +192,3 @@ export default function TimerEditor() {
     </div>
   );
 }
-

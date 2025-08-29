@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Icon from "@/components/Icon";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,10 +49,11 @@ export default function LoginPage() {
         />
         <button
           type="submit"
-          className="px-4 py-2 rounded-md bg-black text-white w-full dark:bg-white dark:text-black"
+          className="px-4 py-2 rounded-md bg-black text-white w-full dark:bg-white dark:text-black inline-flex items-center justify-center gap-2"
           disabled={loading}
         >
-          {loading ? "Signing in…" : "Sign in"}
+          <Icon name="log-in" className="w-4 h-4" />
+          <span>{loading ? "Signing in…" : "Sign in"}</span>
         </button>
         {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
       </form>
@@ -62,4 +64,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

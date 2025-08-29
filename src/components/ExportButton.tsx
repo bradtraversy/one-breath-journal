@@ -1,6 +1,7 @@
 "use client";
 
 import { getEntry, listEntryDates } from "@/lib/local";
+import Icon from "./Icon";
 
 export default function ExportButton() {
   const handleExport = () => {
@@ -21,9 +22,9 @@ export default function ExportButton() {
   };
 
   return (
-    <button onClick={handleExport} className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15 w-fit">
-      Export entries (JSON)
+    <button onClick={handleExport} className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15 w-fit inline-flex items-center gap-2">
+      <Icon name="download" className="w-4 h-4" />
+      <span>Export entries (JSON)</span>
     </button>
   );
 }
-

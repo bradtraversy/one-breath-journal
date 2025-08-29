@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getEntry, removeEntry } from "@/lib/local";
 import { useRouter } from "next/navigation";
+import Icon from "./Icon";
 
 export default function EntryClient({ date }: { date: string }) {
   const router = useRouter();
@@ -26,7 +27,10 @@ export default function EntryClient({ date }: { date: string }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Entry</h1>
-        <Link href="/calendar" className="text-sm underline">Back to Calendar</Link>
+        <Link href="/calendar" className="text-sm underline inline-flex items-center gap-1">
+          <Icon name="arrow-left" className="w-4 h-4" />
+          Back to Calendar
+        </Link>
       </div>
       <div className="rounded-xl border border-black/10 dark:border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur p-6 space-y-3">
         <div className="text-sm opacity-70">Date: {date}</div>
@@ -44,14 +48,15 @@ export default function EntryClient({ date }: { date: string }) {
             )}
             <div className="pt-2">
               <button
-                className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15 text-red-600 dark:text-red-400"
+                className="px-3 py-1.5 rounded-md border border-black/10 dark:border-white/15 text-red-600 dark:text-red-400 inline-flex items-center gap-2"
                 onClick={() => {
                   if (!confirm("Delete this entry? This cannot be undone.")) return;
                   removeEntry(date);
                   router.push("/calendar");
                 }}
               >
-                Delete entry
+                <Icon name="trash" className="w-4 h-4" />
+                <span>Delete entry</span>
               </button>
             </div>
           </>
@@ -60,4 +65,3 @@ export default function EntryClient({ date }: { date: string }) {
     </div>
   );
 }
-
