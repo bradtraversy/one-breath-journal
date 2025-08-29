@@ -36,10 +36,11 @@ export default function SignupClient() {
       setError("Passwords do not match");
       return;
     }
+    const base = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : undefined);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined },
+      options: { emailRedirectTo: base },
     });
     setLoading(false);
     if (error) {

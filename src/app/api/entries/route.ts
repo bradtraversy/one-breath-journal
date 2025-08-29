@@ -1,36 +1,9 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { toDateInTz } from "@/lib/dates";
+import { mapEntryRow, type DBEntryRow } from "@/lib/api";
 
-function toDateInTz(date: Date, timeZone: string): string {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const y = parts.find((p) => p.type === "year")!.value;
-  const m = parts.find((p) => p.type === "month")!.value;
-  const d = parts.find((p) => p.type === "day")!.value;
-  return `${y}-${m}-${d}`;
-}
-
-type DBEntryRow = {
-  id: string;
-  entry_date: string;
-  text: string;
-  started_at: string;
-  submitted_at: string;
-};
-
-function mapEntryRow(row: DBEntryRow) {
-  return {
-    id: row.id,
-    date: row.entry_date,
-    text: row.text,
-    startedAt: row.started_at,
-    submittedAt: row.submitted_at,
-  };
-}
+// mapEntryRow and DBEntryRow are shared in src/lib/api
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -47,7 +20,7 @@ export async function GET(req: Request) {
   if (to) query = query.lte("entry_date", to);
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ entries: (data ?? []).map(mapEntryRow) });
+  return NextResponse.json({ entries: ((data ?? []) as DBEntryRow[]).map(mapEntryRow) });
 }
 
 export async function POST(req: Request) {
@@ -89,5 +62,5 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ entry: mapEntryRow(data) }, { status: 201 });
+  return NextResponse.json({ entry: mapEntryRow(data as DBEntryRow) }, { status: 201 });
 }
